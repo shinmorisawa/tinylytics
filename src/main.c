@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <signal.h>
 #include "db.h"
 #include "http.h"
 
@@ -11,7 +12,16 @@ void* thread_test(void* arg) {
     return NULL;
 }
 
+void handler(int signo) {
+    is_running = 0;
+}
+
 int main(void) {
+    fprintf(stdout, "[main] installing signal handlers\n");
+    fflush(stdout);
+    signal(SIGINT, handler);
+    signal(SIGTERM, handler);
+
     pthread_t thread[2];
 
     if (pthread_create(&thread[0], NULL, db_init, NULL) != 0) {
@@ -29,6 +39,9 @@ int main(void) {
         exit(1);
     }
 
+    fprintf(stdout, "[main] sleeping until signal..\n");
+    fflush(stdout);
+
     while (is_running) {
         sleep(1);
     }
@@ -40,6 +53,7 @@ int main(void) {
     for (int i = 0; i <= sizeof(thread) / sizeof(thread[0]); i++) {
         pthread_join(thread[i], NULL);
     }
+    fprintf(stdout, "[main] joined threads\n");
 
     return 0;
 }

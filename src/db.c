@@ -27,13 +27,13 @@ void* db_init(void* arg) {
     q->size = 0;
     q->capacity = 0;
 
-    db_write("BEGIN");
-    db_write("CREATE TABLE hits ( id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER NOT NULL, user_hash TEXT NOT NULL, path TEXT NOT NULL, extra TEXT )");
-    db_write("CREATE TABLE users ( user_hash TEXT PRIMARY KEY, first_seen INTEGER, last_seen INTEGER, total_hits INTEGER DEFAULT 0 )");
-    db_write("CREATE INDEX idx_hits_user ON hits(user_hash)");
-    db_write("CREATE INDEX idx_hits_timestamp ON hits(timestamp)");
-    db_write("CREATE INDEX idx_hits_path ON hits(path)");
     db_write("PRAGMA journal_mode = WAL");
+    db_write("BEGIN");
+    db_write("CREATE TABLE IF NOT EXISTS hits ( id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER NOT NULL, user_hash TEXT NOT NULL, path TEXT NOT NULL, extra TEXT )");
+    db_write("CREATE TABLE IF NOT EXISTS users ( user_hash TEXT PRIMARY KEY, first_seen INTEGER, last_seen INTEGER, total_hits INTEGER DEFAULT 0 )");
+    db_write("CREATE INDEX IF NOT EXISTS idx_hits_user ON hits(user_hash)");
+    db_write("CREATE INDEX IF NOT EXISTS idx_hits_timestamp ON hits(timestamp)");
+    db_write("CREATE INDEX IF NOT EXISTS idx_hits_path ON hits(path)");
     db_write("COMMIT");
 
     db_loop();
@@ -113,6 +113,7 @@ void db_read(const char* query, int (*row_callback)(void* what, int argc, char**
 
 void db_loop() {
     Event* e;
+    char* error = NULL;
     while (is_running) {
         pthread_mutex_lock(&q->queue_mutex);
 
@@ -135,9 +136,14 @@ void db_loop() {
         if (e) {
             fprintf(stdout, "[db] running query: %s\n", e->query);
             if (e->callback) {
-                sqlite3_exec(db, e->query, e->callback, NULL, NULL);
+                sqlite3_exec(db, e->query, e->callback, NULL, &error);
             } else {
-                sqlite3_exec(db, e->query, NULL, NULL, NULL);
+                sqlite3_exec(db, e->query, NULL, NULL, &error);
+            }
+
+            if (error != SQLITE_OK) {
+                fprintf(stderr, "[db] error: %s\n", error);
+                sqlite3_free(error);
             }
 
             free((void*)e->query);
