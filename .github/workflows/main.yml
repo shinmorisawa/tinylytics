@@ -1,0 +1,31 @@
+name: build tinylytics
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
+
+      - name: install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y ninja-build meson clang libsqlite3-dev libmicrohttpd-dev
+
+      - name: setup build dir
+        run: meson setup build
+
+      - name: build
+        run: ninja -C build
+
+      - name: upload
+        uses: actions/upload-artifact@v3
+        with:
+          name: tinylytics-x86_64
+          path: build/tinylytics
