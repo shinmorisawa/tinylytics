@@ -14,22 +14,36 @@ extern int is_running;
 
 enum MHD_Result http_request_handler(void* cls, struct MHD_Connection* connection, const char* url, const char* method, const char* version, const char* upload_data, unsigned long* upload_data_size, void** con_cls) {
     if (*con_cls == NULL) {
-        *con_cls = malloc(1);
+        *con_cls = malloc(sizeof(int));
         return MHD_YES;
     }
 
     if (*upload_data_size != 0) {
-        if (strcmp(url, "/track") == 0 && *upload_data_size >= 128) {
+        if (strcmp(url, "/track") == 0 && *upload_data_size > 128) {
             char hash[129];
-            memcpy(hash, upload_data, 128);
             hash[128] = '\0';
-            char* path = malloc(*upload_data_size - 128);
-            memcpy(path, upload_data + 128, *upload_data_size - 128);
+            
+            memcpy(hash, upload_data, 128);
+
+            size_t path_len = (*upload_data_size > 128) ? (*upload_data_size - 128) : 1;
+            char* path = malloc(path_len + 1);
+            memset(path, 0, path_len + 1);
+            
+            if (*upload_data_size > 128)
+                memcpy(path, upload_data + 128, *upload_data_size - 128);
+            else
+                path[0] = '/';
+
             time_t now = time(NULL);
             int len = snprintf(NULL, 0, "INSERT INTO hits (timestamp, user_hash, path) VALUES (%ld, '%s', '%s')", now, hash, path);
+            
             char* buf = malloc(len + 1);
             snprintf(buf, len + 1, "INSERT INTO hits (timestamp, user_hash, path) VALUES (%ld, '%s', '%s')", now, hash, path);
+            
             db_write(buf);
+            
+            free(path);
+            free(buf);
         }
 
         *upload_data_size = 0;
