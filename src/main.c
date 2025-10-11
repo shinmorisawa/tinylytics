@@ -1,6 +1,45 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <unistd.h>
+#include "db.h"
+#include "http.h"
 
-int main() {
-    printf("hello\n");
+volatile int is_running = 1;
+
+void* thread_test(void* arg) {
+    return NULL;
+}
+
+int main(void) {
+    pthread_t thread[2];
+
+    if (pthread_create(&thread[0], NULL, db_init, NULL) != 0) {
+        perror("pthread_create");
+        exit(1);
+    }
+
+    if (pthread_create(&thread[1], NULL, http_init, NULL) != 0) {
+        perror("pthread_create");
+        exit(1);
+    }
+
+    if (pthread_create(&thread[2], NULL, thread_test, NULL) != 0) {
+        perror("pthread_create");
+        exit(1);
+    }
+
+    while (is_running) {
+        sleep(1);
+    }
+
+    is_running = 0;
+    db_write(NULL);
+    fprintf(stdout, "[main] exiting...\n");
+
+    for (int i = 0; i <= sizeof(thread) / sizeof(thread[0]); i++) {
+        pthread_join(thread[i], NULL);
+    }
+
     return 0;
 }
