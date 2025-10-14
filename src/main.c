@@ -8,10 +8,6 @@
 
 volatile int is_running = 1;
 
-void* thread_test(void* arg) {
-    return NULL;
-}
-
 void handler(int signo) {
     is_running = 0;
 }
@@ -34,11 +30,6 @@ int main(void) {
         exit(1);
     }
 
-    if (pthread_create(&thread[2], NULL, thread_test, NULL) != 0) {
-        perror("pthread_create");
-        exit(1);
-    }
-
     fprintf(stdout, "[main] sleeping until signal..\n");
     fflush(stdout);
 
@@ -50,9 +41,10 @@ int main(void) {
     db_write(NULL);
     fprintf(stdout, "[main] exiting...\n");
 
-    for (int i = 0; i <= sizeof(thread) / sizeof(thread[0]); i++) {
+    for (int i = 0; i < sizeof(thread) / sizeof(thread[0]); i++) {
         pthread_join(thread[i], NULL);
     }
+
     fprintf(stdout, "[main] joined threads\n");
 
     return 0;
