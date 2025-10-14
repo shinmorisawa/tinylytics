@@ -22,7 +22,7 @@ int main(void) {
     signal(SIGINT, handler);
     signal(SIGTERM, handler);
 
-    pthread_t thread[2];
+    pthread_t thread[3];
 
     if (pthread_create(&thread[0], NULL, db_init, NULL) != 0) {
         perror("pthread_create");

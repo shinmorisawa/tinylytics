@@ -85,7 +85,7 @@ enum MHD_Result http_request_handler(void* cls, struct MHD_Connection* connectio
 }
 
 void* http_init(void* arg) {
-    struct MHD_Daemon* daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, HTTP_PORT, NULL, NULL, &http_request_handler, NULL, MHD_OPTION_END);
+    struct MHD_Daemon* daemon = MHD_start_daemon(MHD_USE_POLL_INTERNALLY, HTTP_PORT, NULL, NULL, &http_request_handler, NULL, MHD_OPTION_END);
     if (!daemon)
         fprintf(stderr, "[http] init failed");
 
