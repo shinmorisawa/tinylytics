@@ -5,6 +5,7 @@
 #include <signal.h>
 #include "db.h"
 #include "http.h"
+#include "ipc.h"
 
 volatile int is_running = 1;
 
@@ -26,6 +27,11 @@ int main(void) {
     }
 
     if (pthread_create(&thread[1], NULL, http_init, NULL) != 0) {
+        perror("pthread_create");
+        exit(1);
+    }
+
+    if (pthread_create(&thread[2], NULL, ipc_init, NULL) != 0) {
         perror("pthread_create");
         exit(1);
     }

@@ -16,6 +16,6 @@ typedef struct EventQueue {
 
 void* db_init(void* arg);
 void db_write(const char* query);
-void db_read(const char* query, int (*row_callback)(void* what, int argc, char** argv, char** colnames));
+void db_read(Event* event);
 void db_loop();
 void db_queue_push(Event* e);

@@ -46,8 +46,8 @@ void* db_init(void* arg) {
     pthread_mutex_destroy(&q->queue_mutex);
     pthread_cond_destroy(&q->queue_cond);
     free(q);
-
     sqlite3_close(db);
+
     return NULL;
 }
 
@@ -102,10 +102,8 @@ static void db_queue_pop_nolock(Event** e) {
     q->size--;
 }
 
-void db_read(const char* query, int (*row_callback)(void* what, int argc, char** argv, char** colnames)) {
-    Event* e = malloc(sizeof(Event));
-    e->query = strdup(query);
-    e->callback = row_callback;
+void db_read(Event* event) {
+    Event* e = event;
 
     db_queue_push(e);
 }
@@ -153,5 +151,6 @@ void db_loop() {
 
         pthread_mutex_unlock(&q->queue_mutex);
     }
+
     return;
 }

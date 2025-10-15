@@ -4,7 +4,8 @@ srcs = files(
   # files go here
   'src/main.c',
   'src/db.c',
-  'src/http.c'
+  'src/http.c',
+  'src/ipc.c',
 )
 
 include = include_directories(
