@@ -85,9 +85,24 @@ enum MHD_Result http_request_handler(void* cls, struct MHD_Connection* connectio
 }
 
 void* http_init(void* arg) {
-    struct MHD_Daemon* daemon = MHD_start_daemon(MHD_USE_THREAD_PER_CONNECTION, HTTP_PORT, NULL, NULL, &http_request_handler, NULL, MHD_OPTION_END);
-    if (!daemon)
-        fprintf(stderr, "[http] init failed");
+    #ifdef USE_EPOLL
+    fprintf(stdout, "[http] using epoll()\n");
+    #elif defined(USE_SELECT)
+    fprintf(stdout, "[http] using select()\n");
+    #else
+    fprintf(stdout, "[http] using whatever because idk\n");
+    #endif
+
+    #ifdef USE_EPOLL
+    struct MHD_Daemon* daemon = MHD_start_daemon(MHD_USE_EPOLL_INTERNAL_THREAD, HTTP_PORT, NULL, NULL, &http_request_handler, NULL, MHD_OPTION_END);
+    #elif defined(USE_SELECT)
+    struct MHD_Daemon* daemon = MHD_start_daemon(MHD_USE_SELECT_INTERNALLY, HTTP_PORT, NULL, NULL, &http_request_handler, NULL, MHD_OPTION_END);
+    #endif
+
+    if (!daemon) {
+        fprintf(stderr, "[http] init failed\n");
+        return NULL;
+    }
 
     fprintf(stdout, "[http] started on port %d\n", HTTP_PORT);
     fflush(stdout);

@@ -44,8 +44,8 @@ int main(void) {
     }
 
     is_running = 0;
-    db_write(NULL);
     fprintf(stdout, "[main] exiting...\n");
+    db_write(NULL);
 
     for (int i = 0; i < sizeof(thread) / sizeof(thread[0]); i++) {
         pthread_join(thread[i], NULL);

@@ -27,6 +27,7 @@ void* db_init(void* arg) {
     q->size = 0;
     q->capacity = 0;
 
+    db_write("PRAGMA journal_mode=DELETE"); /* this should be fine for tinylytics */
     db_write("BEGIN");
     db_write("CREATE TABLE IF NOT EXISTS hits ( id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp INTEGER NOT NULL, user_hash TEXT NOT NULL, path TEXT NOT NULL, extra TEXT )");
     db_write("CREATE TABLE IF NOT EXISTS users ( user_hash TEXT PRIMARY KEY, first_seen INTEGER, last_seen INTEGER, total_hits INTEGER DEFAULT 0 )");
@@ -120,6 +121,8 @@ void db_loop() {
 
         if (!is_running) {
             pthread_mutex_unlock(&q->queue_mutex);
+            fprintf(stdout, "[db] finishing all requests\n");
+            fflush(stdout);
             break;
         }
 
@@ -151,6 +154,9 @@ void db_loop() {
 
         pthread_mutex_unlock(&q->queue_mutex);
     }
+
+    fprintf(stdout, "[db] exiting\n");
+    fflush(stdout);
 
     return;
 }

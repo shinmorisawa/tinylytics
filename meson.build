@@ -1,12 +1,8 @@
 project('tinylytics', 'c')
 
-srcs = files(
-  # files go here
-  'src/main.c',
-  'src/db.c',
-  'src/http.c',
-  'src/ipc.c',
-)
+srcs = files()
+
+subdir('src')
 
 include = include_directories(
   'include'
